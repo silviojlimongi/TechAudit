@@ -9,7 +9,7 @@ import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.AuditStatus
 
 class AuditAdapter(
-    private val listaAuditoria: MutableList<AuditItem>, // cambiada de list a mutable
+    val listaAuditoria: MutableList<AuditItem>, // cambiar a lista mutable
     private val onItemSelected: (AuditItem) -> Unit
 ) : RecyclerView.Adapter<AuditAdapter.AuditViewHolder>() {
 
@@ -33,8 +33,6 @@ class AuditAdapter(
         listaAuditoria.addAll(nuevaLista)
         notifyDataSetChanged() // refrescar la pantalla
     }
-
-
 
 
 

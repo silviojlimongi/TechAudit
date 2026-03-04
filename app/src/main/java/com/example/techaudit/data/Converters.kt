@@ -2,7 +2,7 @@ package com.example.techaudit.data
 //Converters
 import androidx.room.TypeConverter
 import com.example.techaudit.model.AuditStatus
-
+//Room no guarda enums directo (a menos que lo conviertas). Lo más simple: guardar como String.
 
 class Converters {
 

@@ -21,6 +21,8 @@ import java.util.UUID
 class AddEditActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddEditBinding
+    //variable global para saber si estamos en modo edición
+    private var itemEditar:AuditItem? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,8 +32,31 @@ class AddEditActivity : AppCompatActivity() {
         binding = ActivityAddEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Detectar MOOD EDICION
+        if(intent.hasExtra("EXTRA_ITEM_EDITAR")){
+            //recueprar el objeto
+            itemEditar = if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU){
+                intent.getParcelableExtra("EXTRA_ITEM_EDITAR", AuditItem::class.java)
 
+            }else{
+                @Suppress("DEPRECATION") // le dice que este codigo es viejo, pero funciona
+                intent.getParcelableExtra("EXTRA_ITEM_EDITAR")
 
+            }
+
+        }
+        //LLenar campos de texto
+
+        itemEditar?.let{ item -> // para editar
+            binding.etNombre.setText(item.nombre)
+            binding.etUbicacion.setText(item.ubicacion)
+            binding.etNotas.setText(item.notas)
+
+        //seleccionar el estado en el spinner
+            val posicionSpinner = AuditStatus.values().indexOf(item.estado)
+            binding.spEstado.setSelection(posicionSpinner)
+
+        }
         enableEdgeToEdge()
 
 
@@ -45,7 +70,8 @@ class AddEditActivity : AppCompatActivity() {
         setupSpinner()
 
         binding.btnGuardar.setOnClickListener {
-            guardarRegistro()
+            //guardarRegistro()
+            guardarOactualizar()
         }
     }
 
@@ -63,8 +89,8 @@ class AddEditActivity : AppCompatActivity() {
 
         binding.spEstado.adapter = adapter
     }
-
-    private fun guardarRegistro() {
+    //private fun guardarRegistro() {
+    private fun guardarOactualizar() {
         // A. Capturar textos
         val nombre = binding.etNombre.text.toString()
         val ubicacion = binding.etUbicacion.text.toString()
@@ -80,6 +106,7 @@ class AddEditActivity : AppCompatActivity() {
         // El Spinner nos da la posición (0, 1, 2...), la usamos para buscar en el Enum
         val estadoSeleccionado = binding.spEstado.selectedItem as AuditStatus
 
+/*
         // D. Crear el objeto
         val nuevoItem = AuditItem(
             id = UUID.randomUUID().toString(),
@@ -89,6 +116,8 @@ class AddEditActivity : AppCompatActivity() {
             estado = estadoSeleccionado,
             notas = notas
         )
+
+
 
         // E. Guardar en BD (Corutina)
         val database = (application as TechAuditApp).database
@@ -100,6 +129,39 @@ class AddEditActivity : AppCompatActivity() {
             Toast.makeText(this@AddEditActivity, "Guardado!", Toast.LENGTH_SHORT).show()
 
             finish() // Esto cierra la actividad y nos regresa al Main
+        }
+
+ */
+
+        val database = (application as TechAuditApp).database //  base de datos
+        lifecycleScope.launch{
+            if(itemEditar == null) {
+                //actualizar
+                val nuevoItem = AuditItem(
+                    id = UUID.randomUUID().toString(),
+                    nombre = nombre,
+                    ubicacion = ubicacion,
+                    fechaRegistro = Date().toString(), // Fecha de hoy
+                    estado = estadoSeleccionado,
+                    notas = notas,
+                )
+                database.auditDao().insertItem(nuevoItem)
+                Toast.makeText(this@AddEditActivity, "Guardado!", Toast.LENGTH_SHORT).show()
+
+            }else {
+                // editar
+                val itemactualizado = itemEditar!!.copy(
+                    nombre = nombre,
+                    ubicacion = ubicacion,
+                    estado = estadoSeleccionado,
+                    notas = notas,
+
+                    )
+                database.auditDao().updateItem(itemactualizado)
+                Toast.makeText(this@AddEditActivity, "Actualizado!", Toast.LENGTH_SHORT).show()
+            }
+            finish() // para refrescar la lista
+
         }
     }
 }

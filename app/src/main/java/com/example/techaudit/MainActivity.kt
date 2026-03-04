@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.techaudit.adapter.AuditAdapter
@@ -87,10 +88,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        cargarDatosdeBaseDeDatos()
-    }
 
 
     //private fun setupRecyclerView(lista: List<AuditItem>) {
@@ -103,9 +100,9 @@ class MainActivity : AppCompatActivity() {
             //  Toast.makeText(this, "Click en ${itemSeleccionado.nombre}", Toast.LENGTH_SHORT).show()
             //Aqui debe navegar a la pantalla de detalle
 
-            val intent = Intent(this, DetailActivity::class.java) // conectar con la informacion de la pantalla
+            val intent = Intent(this, AddEditActivity::class.java) // conectar con la informacion de la pantalla
             //intent.putExtra("EXTRA_ITEM", itemSeleccionado)
-            intent.putExtra("EXTRA_ITEM", itemSeleccionado)
+            intent.putExtra("EXTRA_ITEM_EDITAR", itemSeleccionado)
             startActivity(intent)
 
 
@@ -116,6 +113,35 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun configurarDeslizarParaBorrar() {
+        val swipeHandler = object : ItemTouchHelper.SimpleCallback(
+            0, // No nos importa mover arriba/abajo
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT // Permitir deslizar a izq y der
+        ) {
+            override fun onMove(r: RecyclerView, v: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder): Boolean = false
+
+            // Este método se dispara cuando el usuario suelta el dedo tras deslizar
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val posicion = viewHolder.adapterPosition
+                val itemABorrar = adapter.listaAuditoria[posicion]
+
+                lifecycleScope.launch {
+                    // 1. Borrar de la Base de Datos
+                    database.auditDao().delete(itemABorrar)
+
+                    // 2. Borrar de la pantalla (Animación fluida)
+                    adapter.listaAuditoria.removeAt(posicion)
+                    adapter.notifyItemRemoved(posicion)
+
+                    Toast.makeText(this@MainActivity, "Equipo Eliminado", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+        // Conectamos este comportamiento a nuestra lista
+        val itemTouchHelper = ItemTouchHelper(swipeHandler)
+        itemTouchHelper.attachToRecyclerView(binding.rvAuditoria)
+    }
 
     private fun cargarDatosdeBaseDeDatos() {
         lifecycleScope.launch() {
@@ -127,6 +153,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    /*
         //no se utiliza por el momento
         private fun insertarRegistro(){
             val nuevoItem = AuditItem(
@@ -145,7 +172,14 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
+
+     */
+
+    override fun onResume() {
+        super.onResume()
+        cargarDatosdeBaseDeDatos()
     }
+}
 
 
 

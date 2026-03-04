@@ -34,7 +34,10 @@ interface AuditDao {
     @Delete
     suspend fun deleteItem(item: AuditItem)
 
-    @Query("DELETE FROM equipos")
-    suspend fun deleteAllItems(): Int
+    //borrar util para pruebas
+    //@Query("DELETE FROM equipos")
+    //suspend fun deleteAllItems(): Int
+    @Delete
+    suspend fun delete(item: AuditItem)
 
 }
