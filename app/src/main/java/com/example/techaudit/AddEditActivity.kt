@@ -137,6 +137,7 @@ class AddEditActivity : AppCompatActivity() {
         lifecycleScope.launch{
             if(itemEditar == null) {
                 //actualizar
+                val laboratorioId = ""
                 val nuevoItem = AuditItem(
                     id = UUID.randomUUID().toString(),
                     nombre = nombre,
@@ -144,23 +145,26 @@ class AddEditActivity : AppCompatActivity() {
                     fechaRegistro = Date().toString(), // Fecha de hoy
                     estado = estadoSeleccionado,
                     notas = notas,
+                    laboratorioId = laboratorioId,
                 )
                 database.auditDao().insertItem(nuevoItem)
                 Toast.makeText(this@AddEditActivity, "Guardado!", Toast.LENGTH_SHORT).show()
 
             }else {
                 // editar
+                val laboratorioId = ""
                 val itemactualizado = itemEditar!!.copy(
                     nombre = nombre,
                     ubicacion = ubicacion,
                     estado = estadoSeleccionado,
                     notas = notas,
+                    laboratorioId = laboratorioId,
 
                     )
                 database.auditDao().updateItem(itemactualizado)
                 Toast.makeText(this@AddEditActivity, "Actualizado!", Toast.LENGTH_SHORT).show()
             }
-            finish() // para refrescar la lista
+            //finish() // para refrescar la lista
 
         }
     }
