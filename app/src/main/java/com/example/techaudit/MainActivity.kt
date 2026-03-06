@@ -20,16 +20,20 @@ import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.AuditStatus
 import java.util.UUID
 import com.example.techaudit.data.AuditDao
+import com.example.techaudit.ui.AuditViewModel
 import kotlinx.coroutines.launch
 import java.util.Date
+import androidx.activity.viewModels
+
 
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private lateinit var adapter: AuditAdapter
-    private lateinit var database: AuditDatabase
 
+    // private lateinit var database: AuditDatabase
+    private val viewModel: AuditViewModel by viewModels ()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,10 +43,17 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
 
-        database = (application as TechAuditApp).database
-
+        //database = (application as TechAuditApp).database
         setupRecyclerView()
-        cargarDatosdeBaseDeDatos()
+        //cargarDatosdeBaseDeDatos()
+        configurarDeslizarParaBorrar()
+
+
+        viewModel.allItems.observe(this) { listaActualizada ->
+            adapter.actualizarlista(listaActualizada)
+        }
+
+
 
         binding.fabAgregar.setOnClickListener {
             //insertarRegistro()
@@ -79,7 +90,7 @@ class MainActivity : AppCompatActivity() {
         */
 
 
-        enableEdgeToEdge()
+       // enableEdgeToEdge()
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -125,6 +136,7 @@ class MainActivity : AppCompatActivity() {
                 val posicion = viewHolder.adapterPosition
                 val itemABorrar = adapter.listaAuditoria[posicion]
 
+               /*
                 lifecycleScope.launch {
                     // 1. Borrar de la Base de Datos
                     database.auditDao().delete(itemABorrar)
@@ -135,6 +147,11 @@ class MainActivity : AppCompatActivity() {
 
                     Toast.makeText(this@MainActivity, "Equipo Eliminado", Toast.LENGTH_SHORT).show()
                 }
+
+                */
+                viewModel.delete(itemABorrar)
+                Toast.makeText(this@MainActivity, "Equipo Eliminado", Toast.LENGTH_SHORT).show()
+
             }
         }
 
@@ -143,6 +160,7 @@ class MainActivity : AppCompatActivity() {
         itemTouchHelper.attachToRecyclerView(binding.rvAuditoria)
     }
 
+    /*
     private fun cargarDatosdeBaseDeDatos() {
         lifecycleScope.launch() {
             val datos = database.auditDao().getAllItems()
@@ -179,6 +197,8 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         cargarDatosdeBaseDeDatos()
     }
+
+     */
 }
 
 
