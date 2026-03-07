@@ -28,13 +28,13 @@ class AuditAdapter(
     override fun getItemCount(): Int = listaAuditoria.size
 
 
-    fun actualizarlista(nuevaLista: List<AuditItem>) {
+    fun actualizarLista(nuevaLista: List<AuditItem>) {
         listaAuditoria.clear()
         listaAuditoria.addAll(nuevaLista)
         notifyDataSetChanged() // refrescar la pantalla
     }
 
-
+    fun obtenerItem(posicion: Int): AuditItem = listaAuditoria[posicion]
 
     override fun onBindViewHolder(holder: AuditViewHolder, position: Int) {
         val item = listaAuditoria[position]

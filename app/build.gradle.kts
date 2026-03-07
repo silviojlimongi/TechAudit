@@ -1,9 +1,12 @@
+//build.gradle(Module)
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-parcelize") //
-
     alias(libs.plugins.ksp)
+    id("kotlin-parcelize")
+
+
 }
 
 android {

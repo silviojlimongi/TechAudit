@@ -1,5 +1,5 @@
 package com.example.techaudit.model
-
+// AuditStatus
 enum class AuditStatus{
     PENDIENTE,
     OPERATIVO,

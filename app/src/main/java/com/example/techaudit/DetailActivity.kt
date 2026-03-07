@@ -1,4 +1,5 @@
 package com.example.techaudit
+//DetailActivity.kt
 
 import android.graphics.Color
 import android.os.Build
@@ -28,7 +29,7 @@ class DetailActivity : AppCompatActivity() {
             intent.getParcelableExtra("auditItem", AuditItem::class.java)
         }else{
             @Suppress("DEPRECATION")
-            intent.getParcelableExtra("EXTRA_ITEM")
+            intent.getParcelableExtra("EXTRA_ITEM_EDITAR")
 
         }
         // mostra los datos si existe el objeto

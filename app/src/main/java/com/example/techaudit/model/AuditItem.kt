@@ -39,3 +39,4 @@ data class AuditItem ( // para pasar los datos entre pantallas activities
     var laboratorioId: String
 
 ):Parcelable
+

@@ -1,6 +1,5 @@
 package com.example.techaudit
-//AddEditActivity
-import android.R
+
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -9,163 +8,159 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import com.example.techaudit.data.AuditDatabase
 import com.example.techaudit.databinding.ActivityAddEditBinding
 import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.AuditStatus
+import com.example.techaudit.model.LaboratoriosEntity
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
-//import com.example.techaudit.data.AuditDao
-
 
 class AddEditActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddEditBinding
-    //variable global para saber si estamos en modo edición
-    private var itemEditar:AuditItem? = null
+    private var itemEditar: AuditItem? = null
+    private var listaLaboratorios: List<LaboratoriosEntity> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-
-
         binding = ActivityAddEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Detectar MOOD EDICION
-        if(intent.hasExtra("EXTRA_ITEM_EDITAR")){
-            //recueprar el objeto
-            itemEditar = if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU){
+        setupSpinnerEstado()
+
+        if (intent.hasExtra("EXTRA_ITEM_EDITAR")) {
+            itemEditar = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                 intent.getParcelableExtra("EXTRA_ITEM_EDITAR", AuditItem::class.java)
-
-            }else{
-                @Suppress("DEPRECATION") // le dice que este codigo es viejo, pero funciona
+            } else {
+                @Suppress("DEPRECATION")
                 intent.getParcelableExtra("EXTRA_ITEM_EDITAR")
-
             }
-
         }
-        //LLenar campos de texto
 
-        itemEditar?.let{ item -> // para editar
+        itemEditar?.let { item ->
             binding.etNombre.setText(item.nombre)
             binding.etUbicacion.setText(item.ubicacion)
             binding.etNotas.setText(item.notas)
 
-        //seleccionar el estado en el spinner
             val posicionSpinner = AuditStatus.values().indexOf(item.estado)
             binding.spEstado.setSelection(posicionSpinner)
-
         }
+
+        val database = (application as TechAuditApp).database
+
+        lifecycleScope.launch {
+            asegurarLaboratorios(database)
+            listaLaboratorios = database.laboratorioDao().getAllLaboratorios()
+            setupSpinnerLaboratorios(listaLaboratorios)
+
+            itemEditar?.let { item ->
+                val index = listaLaboratorios.indexOfFirst { it.id == item.laboratorioId }
+                if (index >= 0) {
+                    binding.spLaboratorio.setSelection(index)
+                }
+            }
+        }
+
+        binding.btnGuardar.setOnClickListener {
+            guardarOActualizar()
+        }
+
         enableEdgeToEdge()
-
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
-        //configurar el spiner
-        setupSpinner()
-
-        binding.btnGuardar.setOnClickListener {
-            //guardarRegistro()
-            guardarOactualizar()
-        }
     }
 
-
-    private fun setupSpinner() {
-        // Truco: Convertimos el Enum a una lista de Strings para el Spinner
-        val estados = AuditStatus.values() // [PENDIENTE, OPERATIVO, ...]
+    private fun setupSpinnerEstado() {
+        val estados = AuditStatus.values()
 
         val adapter = ArrayAdapter(
             this,
-            R.layout.simple_spinner_item,
+            android.R.layout.simple_spinner_item,
             estados
         )
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-
         binding.spEstado.adapter = adapter
     }
-    //private fun guardarRegistro() {
-    private fun guardarOactualizar() {
-        // A. Capturar textos
-        val nombre = binding.etNombre.text.toString()
-        val ubicacion = binding.etUbicacion.text.toString()
-        val notas = binding.etNotas.text.toString()
 
-        // B. Validar (Regla de Negocio)
+    private fun setupSpinnerLaboratorios(laboratorios: List<LaboratoriosEntity>) {
+        val nombres = laboratorios.map { "${it.name} - ${it.location}" }
+
+        val adapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_spinner_item,
+            nombres
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spLaboratorio.adapter = adapter
+    }
+
+    private suspend fun asegurarLaboratorios(database: AuditDatabase) {
+        val laboratorioDao = database.laboratorioDao()
+        val existentes = laboratorioDao.getAllLaboratorios()
+
+        if (existentes.isEmpty()) {
+            val laboratoriosBase = listOf(
+                LaboratoriosEntity(name = "Lab 1", location = "Primer piso"),
+                LaboratoriosEntity(name = "Lab 2", location = "Segundo piso"),
+                LaboratoriosEntity(name = "Lab Redes", location = "Bloque B")
+            )
+            laboratorioDao.insertAll(laboratoriosBase)
+        }
+    }
+
+    private fun guardarOActualizar() {
+        val nombre = binding.etNombre.text.toString().trim()
+        val ubicacion = binding.etUbicacion.text.toString().trim()
+        val notas = binding.etNotas.text.toString().trim()
+
         if (nombre.isBlank() || ubicacion.isBlank()) {
-            Toast.makeText(this, "Nombre y Ubicación son obligatorios", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Nombre y ubicación son obligatorios", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // C. Obtener el Estado seleccionado del Spinner
-        // El Spinner nos da la posición (0, 1, 2...), la usamos para buscar en el Enum
-        val estadoSeleccionado = binding.spEstado.selectedItem as AuditStatus
-
-/*
-        // D. Crear el objeto
-        val nuevoItem = AuditItem(
-            id = UUID.randomUUID().toString(),
-            nombre = nombre,
-            ubicacion = ubicacion,
-            fechaRegistro = Date().toString(), // Fecha de hoy
-            estado = estadoSeleccionado,
-            notas = notas
-        )
-
-
-
-        // E. Guardar en BD (Corutina)
-        val database = (application as TechAuditApp).database
-
-        lifecycleScope.launch() {
-            database.auditDao().insertItem(nuevoItem)
-
-            // F. Cerrar y volver
-            Toast.makeText(this@AddEditActivity, "Guardado!", Toast.LENGTH_SHORT).show()
-
-            finish() // Esto cierra la actividad y nos regresa al Main
+        if (listaLaboratorios.isEmpty()) {
+            Toast.makeText(this, "No hay laboratorios disponibles", Toast.LENGTH_SHORT).show()
+            return
         }
 
- */
+        val estadoSeleccionado = binding.spEstado.selectedItem as AuditStatus
+        val laboratorioSeleccionado = listaLaboratorios[binding.spLaboratorio.selectedItemPosition]
+        val laboratorioIdSeleccionado = laboratorioSeleccionado.id
 
-        val database = (application as TechAuditApp).database //  base de datos
-        lifecycleScope.launch{
-            if(itemEditar == null) {
-                //actualizar
-                val laboratorioId = ""
+        val database = (application as TechAuditApp).database
+
+        lifecycleScope.launch {
+            if (itemEditar == null) {
                 val nuevoItem = AuditItem(
                     id = UUID.randomUUID().toString(),
                     nombre = nombre,
                     ubicacion = ubicacion,
-                    fechaRegistro = Date().toString(), // Fecha de hoy
+                    fechaRegistro = Date().toString(),
                     estado = estadoSeleccionado,
                     notas = notas,
-                    laboratorioId = laboratorioId,
+                    laboratorioId = laboratorioIdSeleccionado
                 )
                 database.auditDao().insertItem(nuevoItem)
-                Toast.makeText(this@AddEditActivity, "Guardado!", Toast.LENGTH_SHORT).show()
-
-            }else {
-                // editar
-                val laboratorioId = ""
-                val itemactualizado = itemEditar!!.copy(
+                Toast.makeText(this@AddEditActivity, "Guardado", Toast.LENGTH_SHORT).show()
+            } else {
+                val itemActualizado = itemEditar!!.copy(
                     nombre = nombre,
                     ubicacion = ubicacion,
                     estado = estadoSeleccionado,
                     notas = notas,
-                    laboratorioId = laboratorioId,
-
-                    )
-                database.auditDao().updateItem(itemactualizado)
-                Toast.makeText(this@AddEditActivity, "Actualizado!", Toast.LENGTH_SHORT).show()
+                    laboratorioId = laboratorioIdSeleccionado
+                )
+                database.auditDao().updateItem(itemActualizado)
+                Toast.makeText(this@AddEditActivity, "Actualizado", Toast.LENGTH_SHORT).show()
             }
-            //finish() // para refrescar la lista
 
+            finish()
         }
     }
 }

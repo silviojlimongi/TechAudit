@@ -11,10 +11,11 @@ import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.LaboratoriosEntity
 
 
-@Database(entities = [AuditItem::class, LaboratoriosEntity::class], version = 1, exportSchema = false)
+@Database(entities = [AuditItem::class, LaboratoriosEntity::class], version = 2, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AuditDatabase : RoomDatabase() {
     abstract fun auditDao(): AuditDao
+    abstract fun laboratorioDao(): LaboratorioDao
 
     companion object {
         @Volatile
@@ -26,7 +27,9 @@ abstract class AuditDatabase : RoomDatabase() {
                 context.applicationContext,
                 AuditDatabase::class.java,
                 "techaudit_db"
-            ).build()
+            )
+                .fallbackToDestructiveMigration()
+                .build()
             INSTANCE = instance
             instance
         }

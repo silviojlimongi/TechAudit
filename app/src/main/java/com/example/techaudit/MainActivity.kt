@@ -20,11 +20,11 @@ import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.AuditStatus
 import java.util.UUID
 import com.example.techaudit.data.AuditDao
-import com.example.techaudit.ui.AuditViewModel
 import kotlinx.coroutines.launch
 import java.util.Date
 import androidx.activity.viewModels
-
+import androidx.lifecycle.lifecycleScope
+import com.example.techaudit.ui.AuditViewModel
 
 
 
@@ -50,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
 
         viewModel.allItems.observe(this) { listaActualizada ->
-            adapter.actualizarlista(listaActualizada)
+        adapter.actualizarLista(listaActualizada)
         }
 
 
@@ -134,7 +134,7 @@ class MainActivity : AppCompatActivity() {
             // Este método se dispara cuando el usuario suelta el dedo tras deslizar
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val posicion = viewHolder.adapterPosition
-                val itemABorrar = adapter.listaAuditoria[posicion]
+                val itemABorrar = adapter.obtenerItem(posicion)
 
                /*
                 lifecycleScope.launch {
