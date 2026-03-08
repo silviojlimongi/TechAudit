@@ -2,20 +2,32 @@ package com.example.techaudit
 
 //MainActivity
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.techaudit.adapter.LaboratorioAdapter
 import com.example.techaudit.databinding.ActivityMainBinding
-import androidx.activity.viewModels
+import com.example.techaudit.network.EquipoDto
+import com.example.techaudit.network.LaboratorioDto
+import com.example.techaudit.network.RetrofitClient
 import com.example.techaudit.ui.LaboratorioViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import retrofit2.HttpException
+import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
@@ -43,6 +55,18 @@ class MainActivity : AppCompatActivity() {
         binding.fabGestionarLaboratorios.setOnClickListener {
             val intent = Intent(this@MainActivity, AddLaboratorioActivity::class.java)
             startActivity(intent)
+        }
+
+        binding.btnSincronizar.setOnClickListener {
+            if (!hayConexionInternet()) {
+                Toast.makeText(
+                    this,
+                    "No hay conexión a internet. Verifica tu red e intenta nuevamente.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } else {
+                sincronizarDatos()
+            }
         }
 
         /*
@@ -189,4 +213,124 @@ class MainActivity : AppCompatActivity() {
     }
 
      */
+
+    private fun sincronizarDatos() {
+        val database = (application as TechAuditApp).database
+
+        lifecycleScope.launch {
+            if (!hayConexionInternet()) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "No hay conexión a internet. No se pudo sincronizar.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return@launch
+            }
+
+            try {
+                binding.progressBarSync.visibility = View.VISIBLE
+                binding.tvPorcentajeSync.visibility = View.VISIBLE
+                binding.btnSincronizar.isEnabled = false
+
+                binding.progressBarSync.progress = 0
+                binding.tvPorcentajeSync.text = "Sincronizando... 0%"
+
+                val laboratorios = database.laboratorioDao().getAllLaboratorios().first()
+                val equipos = database.auditDao().getAllItems().first()
+
+                val totalRegistros = laboratorios.size + equipos.size
+                var enviados = 0
+
+                if (totalRegistros == 0) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "No existen datos locales en Room para sincronizar.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    return@launch
+                }
+
+                for (lab in laboratorios) {
+                    val dto = LaboratorioDto(
+                        id = lab.id,
+                        name = lab.name,
+                        location = lab.location
+                    )
+
+                    val response = RetrofitClient.api.crearLaboratorio(dto)
+
+                    if (!response.isSuccessful) {
+                        throw Exception("Error al subir laboratorio: ${lab.name}")
+                    }
+
+                    enviados++
+                    val porcentaje = (enviados * 100) / totalRegistros
+                    binding.progressBarSync.progress = porcentaje
+                    binding.tvPorcentajeSync.text = "Sincronizando... $porcentaje%"
+                }
+
+                for (equipo in equipos) {
+                    val dto = EquipoDto(
+                        id = equipo.id,
+                        nombre = equipo.nombre,
+                        ubicacion = equipo.ubicacion,
+                        fechaRegistro = equipo.fechaRegistro,
+                        estado = equipo.estado.name,
+                        notas = equipo.notas,
+                        laboratorioId = equipo.laboratorioId
+                    )
+
+                    val response = RetrofitClient.api.crearEquipo(dto)
+
+                    if (!response.isSuccessful) {
+                        throw Exception("Error al subir equipo: ${equipo.nombre}")
+                    }
+
+                    enviados++
+                    val porcentaje = (enviados * 100) / totalRegistros
+                    binding.progressBarSync.progress = porcentaje
+                    binding.tvPorcentajeSync.text = "Sincronizando... $porcentaje%"
+                }
+
+                Toast.makeText(
+                    this@MainActivity,
+                    "Sincronización completada con éxito.",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } catch (e: IOException) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Error de red. Verifica tu conexión a internet.",
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: HttpException) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Error del servidor: ${e.message()}",
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "No se pudo sincronizar: ${e.message}",
+                    Toast.LENGTH_LONG
+                ).show()
+            } finally {
+                binding.progressBarSync.visibility = View.GONE
+                binding.tvPorcentajeSync.visibility = View.GONE
+                binding.btnSincronizar.isEnabled = true
+            }
+        }
+    }
+
+    private fun hayConexionInternet(): Boolean {
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+        val network = connectivityManager.activeNetwork ?: return false
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+        return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+    }
 }

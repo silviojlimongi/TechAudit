@@ -33,4 +33,6 @@ interface LaboratorioDao {
     @Query("SELECT * FROM laboratorios ORDER BY name ASC")
     fun getAllLaboratoriosLive(): LiveData<List<LaboratoriosEntity>>
 
+
+
 }
