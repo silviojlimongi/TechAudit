@@ -19,6 +19,9 @@ interface AuditDao {
     //suspend fun getAllItems(): List<AuditItem> // query para traer todos los equipos
     fun getAllItems(): Flow<List<AuditItem>>
 
+    @Query("SELECT * FROM equipos WHERE laboratorioId = :laboratorioId ORDER BY fechaRegistro DESC")
+    fun getItemsByLaboratorio(laboratorioId: String): Flow<List<AuditItem>>
+
 
     // buscar uno solo por ID
     @Query("SELECT * FROM equipos WHERE id = :id")
@@ -27,7 +30,6 @@ interface AuditDao {
     // insertar un nuevo equipo
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertItem(item: AuditItem)
-
 
 
     @Update
@@ -40,8 +42,12 @@ interface AuditDao {
     //borrar util para pruebas
     //@Query("DELETE FROM equipos")
     //suspend fun deleteAllItems(): Int
-    @Delete
-    suspend fun delete(item: AuditItem)
+    // @Delete
+    //suspend fun delete(item: AuditItem)
 
+    @Query("SELECT COUNT(*) FROM equipos WHERE laboratorioId = :laboratorioId")
+    suspend fun contarEquiposPorLaboratorio(laboratorioId: String): Int
 
+    @Query("SELECT * FROM equipos WHERE laboratorioId = :laboratorioId")
+    suspend fun getEquiposPorLaboratorio(laboratorioId: String): List<AuditItem>
 }

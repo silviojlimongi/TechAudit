@@ -4,7 +4,6 @@ package com.example.techaudit.model
 import android.os.Parcelable
 import androidx.room.Entity
 import kotlinx.parcelize.Parcelize
-import java.util.Date
 import androidx.room.Index
 
 import androidx.room.PrimaryKey

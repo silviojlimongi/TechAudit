@@ -9,31 +9,20 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.techaudit.adapter.AuditAdapter
-import com.example.techaudit.data.AuditDatabase
+import com.example.techaudit.adapter.LaboratorioAdapter
 import com.example.techaudit.databinding.ActivityMainBinding
-import com.example.techaudit.model.AuditItem
-import com.example.techaudit.model.AuditStatus
-import java.util.UUID
-import com.example.techaudit.data.AuditDao
-import kotlinx.coroutines.launch
-import java.util.Date
 import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
-import com.example.techaudit.ui.AuditViewModel
-
-
+import com.example.techaudit.ui.LaboratorioViewModel
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: AuditAdapter
+    private lateinit var adapter: LaboratorioAdapter
 
     // private lateinit var database: AuditDatabase
-    private val viewModel: AuditViewModel by viewModels ()
+    private val viewModel: LaboratorioViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,22 +31,17 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-
         //database = (application as TechAuditApp).database
         setupRecyclerView()
         //cargarDatosdeBaseDeDatos()
         configurarDeslizarParaBorrar()
 
-
-        viewModel.allItems.observe(this) { listaActualizada ->
-        adapter.actualizarLista(listaActualizada)
+        viewModel.allLaboratorios.observe(this) { listaActualizada ->
+            adapter.actualizarLista(listaActualizada)
         }
 
-
-
-        binding.fabAgregar.setOnClickListener {
-            //insertarRegistro()
-            val intent = Intent(this, AddEditActivity::class.java)
+        binding.fabGestionarLaboratorios.setOnClickListener {
+            val intent = Intent(this@MainActivity, AddLaboratorioActivity::class.java)
             startActivity(intent)
         }
 
@@ -89,8 +73,7 @@ class MainActivity : AppCompatActivity() {
         )
         */
 
-
-       // enableEdgeToEdge()
+        // enableEdgeToEdge()
 
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -99,29 +82,24 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-
     //private fun setupRecyclerView(lista: List<AuditItem>) {
     private fun setupRecyclerView() {
 
         //Inicializar el Adapter pansando la lista y la accion del click
-        adapter = AuditAdapter(mutableListOf()) { itemSeleccionado ->
+        adapter = LaboratorioAdapter(mutableListOf()) { laboratorioSeleccionado ->
             //este lambda se va a ejecutar cuando doy click a la tarjeta
 
             //  Toast.makeText(this, "Click en ${itemSeleccionado.nombre}", Toast.LENGTH_SHORT).show()
             //Aqui debe navegar a la pantalla de detalle
 
-            val intent = Intent(this, AddEditActivity::class.java) // conectar con la informacion de la pantalla
+            val intent = Intent(this, DetailActivity::class.java) // conectar con la informacion de la pantalla
             //intent.putExtra("EXTRA_ITEM", itemSeleccionado)
-            intent.putExtra("EXTRA_ITEM_EDITAR", itemSeleccionado)
+            intent.putExtra("EXTRA_LABORATORIO", laboratorioSeleccionado)
             startActivity(intent)
-
-
         }
 
-        binding.rvAuditoria.adapter = adapter // conectar los datos con la interfaz, se conecta con el xml y el adapter
-        binding.rvAuditoria.layoutManager = LinearLayoutManager(this) // como se van a mostrar los datos, los ordena en una lista
-
+        binding.rvLaboratorios.adapter = adapter // conectar los datos con la interfaz, se conecta con el xml y el adapter
+        binding.rvLaboratorios.layoutManager = LinearLayoutManager(this) // como se van a mostrar los datos, los ordena en una lista
     }
 
     private fun configurarDeslizarParaBorrar() {
@@ -134,30 +112,42 @@ class MainActivity : AppCompatActivity() {
             // Este método se dispara cuando el usuario suelta el dedo tras deslizar
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val posicion = viewHolder.adapterPosition
-                val itemABorrar = adapter.obtenerItem(posicion)
+                val laboratorioABorrar = adapter.obtenerItem(posicion)
 
-               /*
-                lifecycleScope.launch {
-                    // 1. Borrar de la Base de Datos
-                    database.auditDao().delete(itemABorrar)
+                /*
+                 lifecycleScope.launch {
+                     // 1. Borrar de la Base de Datos
+                     database.auditDao().delete(itemABorrar)
 
-                    // 2. Borrar de la pantalla (Animación fluida)
-                    adapter.listaAuditoria.removeAt(posicion)
-                    adapter.notifyItemRemoved(posicion)
+                     // 2. Borrar de la pantalla (Animación fluida)
+                     adapter.listaAuditoria.removeAt(posicion)
+                     adapter.notifyItemRemoved(posicion)
 
-                    Toast.makeText(this@MainActivity, "Equipo Eliminado", Toast.LENGTH_SHORT).show()
+                     Toast.makeText(this@MainActivity, "Equipo Eliminado", Toast.LENGTH_SHORT).show()
+                 }
+
+                 */
+
+                viewModel.eliminarSiNoTieneEquipos(laboratorioABorrar) { eliminado ->
+                    runOnUiThread {
+                        if (eliminado) {
+                            Toast.makeText(this@MainActivity, "Laboratorio Eliminado", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "No se puede eliminar: el laboratorio tiene equipos asociados",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            adapter.notifyItemChanged(posicion)
+                        }
+                    }
                 }
-
-                */
-                viewModel.delete(itemABorrar)
-                Toast.makeText(this@MainActivity, "Equipo Eliminado", Toast.LENGTH_SHORT).show()
-
             }
         }
 
         // Conectamos este comportamiento a nuestra lista
         val itemTouchHelper = ItemTouchHelper(swipeHandler)
-        itemTouchHelper.attachToRecyclerView(binding.rvAuditoria)
+        itemTouchHelper.attachToRecyclerView(binding.rvLaboratorios)
     }
 
     /*
@@ -195,12 +185,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        cargarDatosdeBaseDeDatos()
+        //cargarDatosdeBaseDeDatos()
     }
 
      */
 }
-
-
-
-

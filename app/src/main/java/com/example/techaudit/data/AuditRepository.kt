@@ -2,20 +2,20 @@ package com.example.techaudit.data
 //AuditRepository
 
 
+import androidx.room.Delete
 import com.example.techaudit.model.AuditItem
 import kotlinx.coroutines.flow.Flow
 
-class AuditRepository(private val AuditDao: AuditDao){
-    val allItems: Flow<List<AuditItem>> = AuditDao.getAllItems()
+class AuditRepository(private val auditDao: AuditDao){
+    val allItems: Flow<List<AuditItem>> = auditDao.getAllItems()
     suspend fun insert(item: AuditItem){
-        AuditDao.insertItem(item)
+        auditDao.insertItem(item)
     }
     suspend fun update(item: AuditItem){
-        AuditDao.updateItem(item)
+        auditDao.updateItem(item)
     }
-    suspend fun delete(item: AuditItem){
-        AuditDao.delete(item)
+    suspend fun delete(item: AuditItem) {
+        auditDao.deleteItem(item)
     }
-
 
 }

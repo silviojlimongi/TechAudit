@@ -13,6 +13,7 @@ import com.example.techaudit.databinding.ActivityAddEditBinding
 import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.AuditStatus
 import com.example.techaudit.model.LaboratoriosEntity
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
@@ -53,7 +54,7 @@ class AddEditActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             asegurarLaboratorios(database)
-            listaLaboratorios = database.laboratorioDao().getAllLaboratorios()
+            listaLaboratorios = database.laboratorioDao().getAllLaboratorios().first()
             setupSpinnerLaboratorios(listaLaboratorios)
 
             itemEditar?.let { item ->
@@ -102,7 +103,7 @@ class AddEditActivity : AppCompatActivity() {
 
     private suspend fun asegurarLaboratorios(database: AuditDatabase) {
         val laboratorioDao = database.laboratorioDao()
-        val existentes = laboratorioDao.getAllLaboratorios()
+        val existentes = laboratorioDao.getAllLaboratorios().first()
 
         if (existentes.isEmpty()) {
             val laboratoriosBase = listOf(
@@ -110,7 +111,10 @@ class AddEditActivity : AppCompatActivity() {
                 LaboratoriosEntity(name = "Lab 2", location = "Segundo piso"),
                 LaboratoriosEntity(name = "Lab Redes", location = "Bloque B")
             )
-            laboratorioDao.insertAll(laboratoriosBase)
+
+            laboratoriosBase.forEach { laboratorio ->
+                laboratorioDao.insertLaboratorio(laboratorio)
+            }
         }
     }
 
