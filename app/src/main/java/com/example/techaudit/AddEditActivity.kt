@@ -22,6 +22,8 @@ class AddEditActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddEditBinding
     private var itemEditar: AuditItem? = null
+    private var laboratorioIdFijo: String? = null
+
     private var listaLaboratorios: List<LaboratoriosEntity> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +31,8 @@ class AddEditActivity : AppCompatActivity() {
 
         binding = ActivityAddEditBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        laboratorioIdFijo = intent.getStringExtra("EXTRA_LABORATORIO_ID")
 
         setupSpinnerEstado()
 
@@ -56,6 +60,15 @@ class AddEditActivity : AppCompatActivity() {
             asegurarLaboratorios(database)
             listaLaboratorios = database.laboratorioDao().getAllLaboratorios().first()
             setupSpinnerLaboratorios(listaLaboratorios)
+
+            if (itemEditar == null && !laboratorioIdFijo.isNullOrEmpty()) {
+                val index = listaLaboratorios.indexOfFirst { it.id == laboratorioIdFijo }
+                if (index >= 0) {
+                    binding.spLaboratorio.setSelection(index)
+                    binding.spLaboratorio.isEnabled = false
+                    binding.spLaboratorio.alpha = 0.6f
+                }
+            }
 
             itemEditar?.let { item ->
                 val index = listaLaboratorios.indexOfFirst { it.id == item.laboratorioId }
@@ -134,8 +147,13 @@ class AddEditActivity : AppCompatActivity() {
         }
 
         val estadoSeleccionado = binding.spEstado.selectedItem as AuditStatus
-        val laboratorioSeleccionado = listaLaboratorios[binding.spLaboratorio.selectedItemPosition]
-        val laboratorioIdSeleccionado = laboratorioSeleccionado.id
+
+        val laboratorioIdSeleccionado = if (itemEditar == null && !laboratorioIdFijo.isNullOrEmpty()) {
+            laboratorioIdFijo!!
+        } else {
+            val laboratorioSeleccionado = listaLaboratorios[binding.spLaboratorio.selectedItemPosition]
+            laboratorioSeleccionado.id
+        }
 
         val database = (application as TechAuditApp).database
 
