@@ -9,7 +9,7 @@ import com.example.techaudit.model.AuditItem
 import com.example.techaudit.model.AuditStatus
 
 class AuditAdapter(
-    private val listaAuditoria: MutableList<AuditItem>, // cambiada de list a mutable
+    val listaAuditoria: MutableList<AuditItem>, // cambiar a lista mutable
     private val onItemSelected: (AuditItem) -> Unit
 ) : RecyclerView.Adapter<AuditAdapter.AuditViewHolder>() {
 
@@ -28,15 +28,13 @@ class AuditAdapter(
     override fun getItemCount(): Int = listaAuditoria.size
 
 
-    fun actualizarlista(nuevaLista: List<AuditItem>) {
+    fun actualizarLista(nuevaLista: List<AuditItem>) {
         listaAuditoria.clear()
         listaAuditoria.addAll(nuevaLista)
         notifyDataSetChanged() // refrescar la pantalla
     }
 
-
-
-
+    fun obtenerItem(posicion: Int): AuditItem = listaAuditoria[posicion]
 
     override fun onBindViewHolder(holder: AuditViewHolder, position: Int) {
         val item = listaAuditoria[position]

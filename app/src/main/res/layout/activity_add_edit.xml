@@ -9,12 +9,12 @@
     tools:context=".AddEditActivity">
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:text="Nuevo Registro"
         android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="24dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:textStyle="bold" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -23,9 +23,9 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etNombre"
-            android:inputType="textCapWords"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:inputType="textCapWords" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -36,23 +36,36 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etUbicacion"
-            android:inputType="textCapSentences"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:inputType="textCapSentences" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView
-        android:text="Estado del Equipo:"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:layout_marginBottom="8dp"
+        android:text="Laboratorio:" />
+
+    <Spinner
+        android:id="@+id/spLaboratorio"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@android:drawable/btn_dropdown" />
+
+    <TextView
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="8dp"
+        android:text="Estado del Equipo:" />
 
     <Spinner
         android:id="@+id/spEstado"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@android:drawable/btn_dropdown"/>
+        android:background="@android:drawable/btn_dropdown" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
@@ -62,19 +75,19 @@
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/etNotas"
-            android:inputType="textMultiLine"
-            android:minLines="3"
-            android:gravity="top"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:gravity="top"
+            android:inputType="textMultiLine"
+            android:minLines="3" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <Button
         android:id="@+id/btnGuardar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Guardar Registro"
         android:layout_marginTop="32dp"
-        android:backgroundTint="#2196F3"/>
+        android:backgroundTint="#2196F3"
+        android:text="Guardar Registro" />
 
 </LinearLayout>

@@ -8,31 +8,34 @@ import androidx.room.RoomDatabase
 
 import androidx.room.TypeConverters
 import com.example.techaudit.model.AuditItem
+import com.example.techaudit.model.LaboratoriosEntity
 
 
-@Database(entities = [AuditItem::class], version = 1, exportSchema = false)
+@Database(entities = [AuditItem::class, LaboratoriosEntity::class], version = 6, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AuditDatabase : RoomDatabase() {
     abstract fun auditDao(): AuditDao
+    abstract fun laboratorioDao(): LaboratorioDao
 
     companion object {
         @Volatile
         private var INSTANCE: AuditDatabase? = null
 
-        fun getDatabase(context: Context): AuditDatabase {
-            return INSTANCE ?: synchronized(this) {
-            val instance = Room.databaseBuilder(
-                context.applicationContext,
-                AuditDatabase::class.java,
-                "techaudit_db"
-            ).build()
-            INSTANCE = instance
-            instance
-        }
+            fun getDatabase(context: Context): AuditDatabase {
+                return INSTANCE ?: synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    AuditDatabase::class.java,
+                    "techaudit_db"
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
+                INSTANCE = instance
+                instance
+            }
 
         }
 
     }
 
 }
-

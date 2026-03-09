@@ -9,13 +9,19 @@ import androidx.room.Query
 import androidx.room.Update
 
 import com.example.techaudit.model.AuditItem
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AuditDao {
     //Traer todos los equipos ordenados por fecha
 
     @Query("SELECT * FROM equipos ORDER BY fechaRegistro DESC")
-    suspend fun getAllItems(): List<AuditItem> // query para traer todos los equipos
+    //suspend fun getAllItems(): List<AuditItem> // query para traer todos los equipos
+    fun getAllItems(): Flow<List<AuditItem>>
+
+    @Query("SELECT * FROM equipos WHERE laboratorioId = :laboratorioId ORDER BY fechaRegistro DESC")
+    fun getItemsByLaboratorio(laboratorioId: String): Flow<List<AuditItem>>
+
 
     // buscar uno solo por ID
     @Query("SELECT * FROM equipos WHERE id = :id")
@@ -26,7 +32,6 @@ interface AuditDao {
     suspend fun insertItem(item: AuditItem)
 
 
-
     @Update
     suspend fun updateItem(item: AuditItem)
 
@@ -34,7 +39,15 @@ interface AuditDao {
     @Delete
     suspend fun deleteItem(item: AuditItem)
 
-    @Query("DELETE FROM equipos")
-    suspend fun deleteAllItems(): Int
+    //borrar util para pruebas
+    //@Query("DELETE FROM equipos")
+    //suspend fun deleteAllItems(): Int
+    // @Delete
+    //suspend fun delete(item: AuditItem)
 
+    @Query("SELECT COUNT(*) FROM equipos WHERE laboratorioId = :laboratorioId")
+    suspend fun contarEquiposPorLaboratorio(laboratorioId: String): Int
+
+    @Query("SELECT * FROM equipos WHERE laboratorioId = :laboratorioId")
+    suspend fun getEquiposPorLaboratorio(laboratorioId: String): List<AuditItem>
 }

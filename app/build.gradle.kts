@@ -1,19 +1,22 @@
+//build.gradle(Module)
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
-    id("kotlin-parcelize") //
-
     alias(libs.plugins.ksp)
+    id("kotlin-parcelize")
+
+
 }
 
 android {
     namespace = "com.example.techaudit"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.techaudit"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -30,11 +33,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
     buildFeatures {
         viewBinding = true
@@ -51,16 +54,26 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation("androidx.recyclerview:recyclerview:1.3.2")
-    //es contenedor avanzado para mostrar grandes conjuntos de datos que se pueden desplazar en una direccion especifica
     implementation("androidx.cardview:cardview:1.0.0")
-    // es el maquillaje que le da el toque moderno y profesional a los elementos
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    //manejo de recuersos visuales
 
+    // Lifecycle
+    val lifecycle_version = "2.7.0"
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version")
 
-    // room database - definir la instrucciones para ques se descarga la configuracion de la base de datos
-    val roomVersion = "2.6.1"
+    // Room database - Updated to 2.7.0-alpha11 for Kotlin 2.x / KSP 2 compatibility
+    val roomVersion = "2.7.0-alpha11"
     implementation("androidx.room:room-runtime:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion") // Para Corutinas
-    ksp("androidx.room:room-compiler:$roomVersion")      // El procesador
+    implementation("androidx.room:room-ktx:$roomVersion")
+    ksp("androidx.room:room-compiler:$roomVersion")
+
+    implementation("androidx.activity:activity-ktx:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.11.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
 }
