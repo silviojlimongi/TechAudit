@@ -18,7 +18,7 @@
             android:id="@+id/tvNombreLaboratorio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Laboratorio"
+            android:text="Equipos"
             android:textSize="22sp"
             android:textStyle="bold"
             android:paddingStart="16dp"
@@ -26,15 +26,6 @@
             android:paddingEnd="16dp"
             android:paddingBottom="4dp" />
 
-        <TextView
-            android:id="@+id/tvUbicacionLaboratorio"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Ubicación"
-            android:textSize="16sp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvEquipos"
